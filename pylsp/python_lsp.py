@@ -280,6 +280,10 @@ class PythonLSPServer(MethodDispatcher):
 
     def m_initialize(self, processId=None, rootUri=None, rootPath=None,
                      initializationOptions=None, workspaceFolders=None, **_kwargs):
+        return lambda: self._m_initialize(processId, rootUri, rootPath, initializationOptions, workspaceFolders, **_kwargs)
+
+    def _m_initialize(self, processId=None, rootUri=None, rootPath=None,
+                     initializationOptions=None, workspaceFolders=None, **_kwargs):
         log.debug('Language server initialized with %s %s %s %s', processId, rootUri, rootPath, initializationOptions)
         if rootUri is None:
             rootUri = uris.from_fs_path(rootPath) if rootPath is not None else ''
@@ -405,12 +409,19 @@ class PythonLSPServer(MethodDispatcher):
         workspace.rm_document(textDocument['uri'])
 
     def m_text_document__did_open(self, textDocument=None, **_kwargs):
+        return lambda: self._m_text_document__did_open(textDocument, **_kwargs)
+
+    def _m_text_document__did_open(self, textDocument=None, **_kwargs):
         workspace = self._match_uri_to_workspace(textDocument['uri'])
         workspace.put_document(textDocument['uri'], textDocument['text'], version=textDocument.get('version'))
         self._hook('pylsp_document_did_open', textDocument['uri'])
         self.lint(textDocument['uri'], is_saved=True)
 
     def m_text_document__did_change(self, contentChanges=None, textDocument=None, **_kwargs):
+        # return lambda: self._m_text_document__did_change(contentChanges, textDocument, **_kwargs)
+        self._m_text_document__did_change(contentChanges, textDocument, **_kwargs)
+
+    def _m_text_document__did_change(self, contentChanges=None, textDocument=None, **_kwargs):
         workspace = self._match_uri_to_workspace(textDocument['uri'])
         for change in contentChanges:
             workspace.update_document(
@@ -421,6 +432,9 @@ class PythonLSPServer(MethodDispatcher):
         self.lint(textDocument['uri'], is_saved=False)
 
     def m_text_document__did_save(self, textDocument=None, **_kwargs):
+        return lambda: self._m_text_document__did_save(textDocument, **_kwargs)
+
+    def _m_text_document__did_save(self, textDocument=None, **_kwargs):
         self.lint(textDocument['uri'], is_saved=True)
         self.document_did_save(textDocument['uri'])
 

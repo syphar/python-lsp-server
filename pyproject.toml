@@ -56,7 +56,7 @@ test = [
     "numpy",
     "pandas",
     "matplotlib",
-    "pyqt5",
+    # "pyqt5",
     "flaky",
 ]
 
